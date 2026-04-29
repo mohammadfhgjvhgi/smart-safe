@@ -40,30 +40,36 @@
         .mini-card { background: #1A1A2E; border-radius: 15px; padding: 12px 15px; text-align: center; flex: 1; max-width: 100px; }
         
         /* Password Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-overlay.show { display: flex; }
         
-        .modal-box { background: #1A1A2E; border-radius: 20px; padding: 30px; width: 90%; max-width: 320px; text-align: center; }
-        .modal-box h2 { margin-bottom: 20px; color: #6C63FF; }
+        .modal-box { background: linear-gradient(145deg, #1A1A2E, #16213E); border-radius: 24px; padding: 30px; width: 90%; max-width: 320px; text-align: center; border: 1px solid #333; }
+        .modal-box h2 { margin-bottom: 20px; color: #6C63FF; font-size: 1.3rem; }
         
-        .password-input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border-radius: 12px; border: 2px solid #6C63FF; background: #0F0F1A; color: white; letter-spacing: 8px; margin-bottom: 15px; }
-        .password-input:focus { outline: none; border-color: #00D9FF; }
+        .password-input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border-radius: 12px; border: 2px solid #6C63FF; background: #0F0F1A; color: white; letter-spacing: 8px; margin-bottom: 10px; }
+        .password-input:focus { outline: none; border-color: #00D9FF; box-shadow: 0 0 20px rgba(108, 99, 255, 0.3); }
         
-        .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
-        .modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 1rem; cursor: pointer; transition: 0.3s; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; font-size: 1rem; cursor: pointer; transition: 0.3s; font-weight: bold; }
         .modal-btn.confirm { background: linear-gradient(135deg, #6C63FF, #00D9FF); color: white; }
-        .modal-btn.cancel { background: #333; color: white; }
+        .modal-btn.cancel { background: #333; color: #aaa; }
         .modal-btn:active { transform: scale(0.95); }
         
-        .error-msg { color: #FF5252; font-size: 0.85rem; margin-top: 10px; display: none; }
-        .error-msg.show { display: block; }
+        .error-msg { color: #FF5252; font-size: 0.85rem; margin-top: 5px; display: none; }
+        .error-msg.show { display: block; animation: shake 0.5s; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
         
         .bottom-section { padding: 15px 20px; }
         .log-container { background: #1A1A2E; border-radius: 15px; padding: 12px; max-height: 120px; overflow-y: auto; }
         
-        .alarm-btn { position: fixed; bottom: 30px; right: 20px; background: #FF5252; border: none; padding: 12px 18px; border-radius: 25px; color: white; box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4); }
+        .alarm-btn { position: fixed; bottom: 30px; right: 20px; background: linear-gradient(135deg, #FF5252, #FF1744); border: none; padding: 14px 20px; border-radius: 25px; color: white; box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4); font-weight: bold; }
         
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); padding: 12px 20px; border-radius: 12px; z-index: 1001; transition: 0.3s; }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); padding: 14px 24px; border-radius: 12px; z-index: 1001; transition: 0.3s; font-weight: bold; }
         .toast.show { transform: translateX(-50%) translateY(20px); }
         
         .loading { position: fixed; inset: 0; background: #0F0F1A; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; transition: 0.5s; }
@@ -126,7 +132,6 @@
             appId: "1:601253161068:web:b8fda4072eaa824acf1049"
         };
 
-        // كلمة المرور الافتراضية (يمكن تغييرها من Firebase)
         const DEFAULT_PASSWORD = "123456";
         
         let db, connected = false, safeOpen = false;
@@ -184,15 +189,13 @@
 
         function askPassword() {
             if (!connected) {
-                showToast('غير متصل بالإنترنت!', '#FF5252');
+                showToast('❌ غير متصل بالإنترنت!', '#FF5252');
                 return;
             }
-            // إذا الخزنة مفتوحة، أغلقها مباشرة بدون كلمة مرور
             if (safeOpen) {
                 closeSafe();
                 return;
             }
-            // إذا مقفلة، اطلب كلمة المرور
             document.getElementById('passwordModal').classList.add('show');
             document.getElementById('passwordInput').value = '';
             document.getElementById('errorMsg').classList.remove('show');
@@ -210,7 +213,6 @@
         function verifyPassword() {
             const input = document.getElementById('passwordInput').value;
             
-            // جلب كلمة المرور من Firebase أو استخدام الافتراضية
             db.ref('app_password').once('value').then(snapshot => {
                 const correctPassword = snapshot.val() || DEFAULT_PASSWORD;
                 
@@ -254,7 +256,7 @@
             toast.textContent = msg;
             toast.style.background = color;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+            setTimeout(() => toast.classList.remove('show'), 2500);
         }
         
         window.onload = init;
