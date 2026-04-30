@@ -2,250 +2,190 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0a0a0f">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="الخزنة الذكية">
-    <meta name="mobile-web-app-capable" content="yes">
+    <title>🔐 الخزنة الذكية</title>
     
-    <title>🔐 الخزنة الذكية - النسخة المتقدمة</title>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
-    <!-- Chart.js for Statistics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Google Fonts -->
+    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <style>
-        /* ==================== CSS Reset & Base ==================== */
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
             --primary: #6366f1;
             --primary-light: #818cf8;
             --primary-dark: #4f46e5;
-            --accent: #22d3ee;
+            --accent: #06b6d4;
             --success: #10b981;
-            --success-light: #34d399;
             --danger: #ef4444;
-            --danger-light: #f87171;
             --warning: #f59e0b;
-            --warning-light: #fbbf24;
-            --bg-dark: #0a0a0f;
-            --bg-card: rgba(15, 15, 25, 0.8);
-            --bg-glass: rgba(255, 255, 255, 0.03);
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-color: rgba(255, 255, 255, 0.08);
+            --bg-main: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-input: #252540;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #2d2d4a;
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
-
-        html {
-            height: 100%;
-            overflow: hidden;
-        }
-
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.5;
         }
-
-        /* Animated Background */
-        .bg-animation {
+        
+        /* ===== Loading ===== */
+        .loader {
             position: fixed;
             inset: 0;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .bg-animation::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(34, 211, 238, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
-            animation: bgMove 20s ease-in-out infinite;
-        }
-
-        @keyframes bgMove {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(-2%, 2%) rotate(2deg); }
-            50% { transform: translate(2%, -2%) rotate(-1deg); }
-            75% { transform: translate(-1%, -1%) rotate(1deg); }
-        }
-
-        /* ==================== Password Screen ==================== */
-        .password-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-dark);
+            background: var(--bg-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 3000;
+            z-index: 9999;
+            transition: opacity 0.4s, visibility 0.4s;
+        }
+        .loader.hide { opacity: 0; visibility: hidden; }
+        .loader-spinner {
+            width: 50px; height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { margin-top: 15px; color: var(--text-muted); }
+        
+        /* ===== Login Screen ===== */
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
             padding: 20px;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            transition: opacity 0.4s, visibility 0.4s;
         }
-
-        .password-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .password-container {
-            text-align: center;
-            max-width: 320px;
+        .login-screen.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        .login-box {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 40px;
             width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: var(--shadow);
         }
-
-        .password-icon {
+        
+        .login-icon {
             font-size: 4rem;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
+            margin-bottom: 15px;
+            animation: bounce 2s ease-in-out infinite;
         }
-
-        @keyframes float {
+        @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
-
-        .password-title {
+        
+        .login-title {
             font-size: 1.8rem;
             font-weight: 800;
             background: linear-gradient(135deg, var(--primary-light), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
+            background-clip: text;
         }
-
-        .password-subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 30px;
-        }
-
-        .password-input {
+        
+        .login-sub { color: var(--text-muted); margin: 8px 0 25px; font-size: 0.95rem; }
+        
+        .input-group { margin-bottom: 15px; }
+        
+        .input-field {
             width: 100%;
-            padding: 16px 20px;
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
-            color: var(--text-primary);
-            font-size: 1.1rem;
+            padding: 14px 18px;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
             font-family: inherit;
+            font-size: 1rem;
             text-align: center;
-            letter-spacing: 8px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-
-        .password-input:focus {
+        .input-field:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
-
-        .password-input.error {
-            border-color: var(--danger);
-            animation: shake 0.5s ease;
-        }
-
+        .input-field.error { border-color: var(--danger); animation: shake 0.4s; }
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-10px); }
-            40%, 80% { transform: translateX(10px); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-
-        .password-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        
+        .btn {
+            padding: 14px 28px;
             border: none;
-            border-radius: 16px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
+            border-radius: 12px;
             font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-
-        .password-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            width: 100%;
         }
-
-        .password-error {
-            color: var(--danger);
-            font-size: 0.85rem;
-            margin-top: 15px;
-            min-height: 20px;
-        }
-
-        /* ==================== Main App ==================== */
-        .app-container {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .app-container.visible {
-            display: flex;
-        }
-
-        /* Header */
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
+        
+        .login-error { color: var(--danger); font-size: 0.85rem; margin-top: 12px; min-height: 20px; }
+        
+        /* ===== Main App ===== */
+        .app { display: none; min-height: 100vh; }
+        .app.show { display: block; }
+        
+        /* ===== Header ===== */
         .header {
+            background: var(--bg-card);
             padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-shrink: 0;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-
-        .header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .header h1 {
-            font-size: 1.3rem;
+        
+        .header-left h1 {
+            font-size: 1.2rem;
             font-weight: 800;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
-        .header h1 span {
-            background: linear-gradient(135deg, var(--primary-light), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
+        
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -254,212 +194,142 @@
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
+            margin-top: 4px;
         }
-
-        .status-badge.connected {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-        }
-
-        .status-badge.disconnected {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--danger);
-        }
-
+        .status-badge.online { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .status-badge.offline { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 6px; height: 6px;
             border-radius: 50%;
             background: currentColor;
-            animation: pulse 2s infinite;
+            animation: pulse 1.5s infinite;
         }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .header-right {
-            display: flex;
-            gap: 8px;
-        }
-
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        .header-btns { display: flex; gap: 8px; }
         .header-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 10px;
-            color: var(--text-primary);
-            font-size: 1.2rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background 0.2s;
         }
-
-        .header-btn:active {
-            transform: scale(0.95);
+        .header-btn:hover { background: var(--border); }
+        
+        /* ===== Tabs ===== */
+        .tabs-container {
+            background: var(--bg-card);
+            padding: 8px;
+            margin: 15px;
+            border-radius: 14px;
         }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 15px;
-        }
-
-        /* Tabs */
+        
         .tabs {
             display: flex;
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 4px;
-            margin-bottom: 15px;
+            gap: 4px;
         }
-
-        .tab {
+        
+        .tab-btn {
             flex: 1;
             padding: 10px;
-            border: none;
             background: transparent;
+            border: none;
+            border-radius: 10px;
             color: var(--text-muted);
             font-family: inherit;
             font-size: 0.85rem;
             font-weight: 600;
-            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
-
-        .tab.active {
+        .tab-btn.active {
             background: var(--primary);
             color: white;
         }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Lock Control */
-        .lock-control {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .lock-button-wrapper {
-            position: relative;
-        }
-
+        
+        .tab-content { display: none; padding: 0 15px 100px; }
+        .tab-content.active { display: block; }
+        
+        /* ===== Lock Control ===== */
+        .lock-section { text-align: center; padding: 20px 0; }
+        
+        .lock-wrapper { position: relative; display: inline-block; }
+        
         .lock-glow {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 160px;
-            height: 160px;
+            width: 150px; height: 150px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
-            filter: blur(30px);
-            animation: glowPulse 2.5s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+            filter: blur(25px);
+            animation: glow 2s ease-in-out infinite;
             z-index: -1;
-            transition: background 0.5s ease;
         }
-
-        .lock-glow.unlocked {
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, transparent 70%);
+        .lock-glow.open { background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%); }
+        @keyframes glow {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
         }
-
-        @keyframes glowPulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-        }
-
-        .lock-button {
-            width: 130px;
-            height: 130px;
+        
+        .lock-btn {
+            width: 120px; height: 120px;
             border-radius: 50%;
-            border: 3px solid transparent;
-            background: linear-gradient(var(--bg-dark), var(--bg-dark)) padding-box,
-                        linear-gradient(135deg, var(--primary), var(--accent)) border-box;
+            border: 3px solid var(--primary);
+            background: var(--bg-card);
+            font-size: 2.8rem;
             cursor: pointer;
-            font-size: 3rem;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s ease;
         }
-
-        .lock-button.unlocked {
-            background: linear-gradient(var(--bg-dark), var(--bg-dark)) padding-box,
-                        linear-gradient(135deg, var(--success), var(--success-light)) border-box;
-        }
-
-        .lock-button:active {
-            transform: scale(0.92);
-        }
-
-        .status-text {
+        .lock-btn.open { border-color: var(--success); }
+        .lock-btn:active { transform: scale(0.92); }
+        
+        .lock-status {
             font-size: 1.2rem;
             font-weight: 700;
+            margin-top: 15px;
         }
-
-        .status-text.locked { color: var(--primary-light); }
-        .status-text.unlocked { color: var(--success); }
-
-        /* Stats Grid */
+        .lock-status.closed { color: var(--primary-light); }
+        .lock-status.open { color: var(--success); }
+        
+        /* ===== Stats Grid ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
-            margin-bottom: 15px;
+            margin: 20px 0;
         }
-
+        
         .stat-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 14px;
             padding: 15px;
             text-align: center;
+            border: 1px solid var(--border);
         }
-
-        .stat-icon {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            font-size: 1rem;
-            font-weight: 700;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
+        .stat-icon { font-size: 1.5rem; }
+        .stat-label { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; margin: 6px 0 4px; }
+        .stat-value { font-size: 1.1rem; font-weight: 700; }
+        
+        /* ===== Action Buttons ===== */
+        .actions-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
-            margin-bottom: 15px;
+            margin: 20px 0;
         }
-
+        
         .action-btn {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
             padding: 15px;
-            color: var(--text-primary);
+            color: var(--text-main);
             font-family: inherit;
             font-size: 0.85rem;
             font-weight: 600;
@@ -468,104 +338,66 @@
             flex-direction: column;
             align-items: center;
             gap: 8px;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
-
-        .action-btn:active {
-            transform: scale(0.96);
-        }
-
-        .action-btn.danger {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: var(--danger);
-        }
-
-        .action-btn.warning {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: rgba(245, 158, 11, 0.3);
-            color: var(--warning);
-        }
-
-        .action-btn.success {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
-            color: var(--success);
-        }
-
-        .action-btn .icon {
-            font-size: 1.5rem;
-        }
-
-        /* Cards List */
+        .action-btn:active { transform: scale(0.96); }
+        .action-btn.danger { border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
+        .action-btn.warning { border-color: rgba(245, 158, 11, 0.3); color: var(--warning); }
+        .action-btn.success { border-color: rgba(16, 185, 129, 0.3); color: var(--success); }
+        .action-btn.active { background: rgba(99, 102, 241, 0.1); border-color: var(--primary); }
+        .action-btn .icon { font-size: 1.4rem; }
+        
+        /* ===== Section Title ===== */
         .section-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin: 20px 0 10px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
+        
+        /* ===== Cards List ===== */
         .cards-list {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
             overflow: hidden;
-            margin-bottom: 15px;
         }
-
+        
         .card-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
         }
-
-        .card-item:last-child {
-            border-bottom: none;
-        }
-
-        .card-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .card-item:last-child { border-bottom: none; }
+        
+        .card-info { display: flex; align-items: center; gap: 12px; }
         .card-icon {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             background: rgba(99, 102, 241, 0.15);
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
         }
-
-        .card-uid {
-            font-family: monospace;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .card-label {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-
+        .card-uid { font-family: monospace; font-size: 0.95rem; font-weight: 600; }
+        .card-label { color: var(--text-muted); font-size: 0.75rem; }
+        
         .delete-btn {
             background: rgba(239, 68, 68, 0.15);
             border: none;
-            border-radius: 10px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 6px 12px;
             color: var(--danger);
             font-family: inherit;
             font-size: 0.8rem;
             cursor: pointer;
         }
-
+        
         .add-card-btn {
             width: 100%;
             padding: 12px;
@@ -581,266 +413,162 @@
             justify-content: center;
             gap: 8px;
         }
-
-        /* Log Container */
-        .log-container {
+        
+        /* ===== Log ===== */
+        .log-box {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
             overflow: hidden;
         }
-
+        
         .log-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .log-title {
-            display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
         }
-
-        .log-actions {
-            display: flex;
-            gap: 8px;
-        }
-
+        .log-title { font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
         .log-btn {
             background: transparent;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 6px 10px;
+            padding: 5px 10px;
             color: var(--text-muted);
             font-family: inherit;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
-
-        .log-btn:hover {
-            background: var(--bg-glass);
-            color: var(--text-secondary);
-        }
-
-        .log-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
+        
+        .log-list { max-height: 200px; overflow-y: auto; }
+        
         .log-item {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 10px 15px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
         }
-
-        .log-item:last-child {
-            border-bottom: none;
-        }
-
+        .log-item:last-child { border-bottom: none; }
+        
         .log-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
+            width: 32px; height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.9rem;
         }
-
         .log-icon.open { background: rgba(16, 185, 129, 0.15); }
         .log-icon.close { background: rgba(99, 102, 241, 0.15); }
         .log-icon.alarm { background: rgba(239, 68, 68, 0.15); }
         .log-icon.fail { background: rgba(245, 158, 11, 0.15); }
-
-        .log-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .log-action {
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        .log-time {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-        }
-
+        
+        .log-info { flex: 1; min-width: 0; }
+        .log-action { font-weight: 600; font-size: 0.8rem; }
+        .log-time { color: var(--text-muted); font-size: 0.7rem; }
+        
         .log-source {
-            padding: 4px 10px;
+            padding: 3px 10px;
             border-radius: 15px;
             font-size: 0.65rem;
             font-weight: 700;
         }
-
         .log-source.app { background: rgba(99, 102, 241, 0.15); color: var(--primary-light); }
-        .log-source.rfid { background: rgba(34, 211, 238, 0.15); color: var(--accent); }
+        .log-source.rfid { background: rgba(6, 182, 212, 0.15); color: var(--accent); }
         .log-source.auto { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
         .log-source.guest { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-        .log-source.unauthorized { background: rgba(239, 68, 68, 0.15); color: var(--danger-light); }
-
-        .empty-log {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 30px;
-            font-size: 0.85rem;
-        }
-
-        /* Settings */
-        .settings-section {
+        .log-source.fail { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        
+        .empty-state { text-align: center; color: var(--text-muted); padding: 25px; font-size: 0.9rem; }
+        
+        /* ===== Settings ===== */
+        .settings-box {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
             margin-bottom: 15px;
             overflow: hidden;
         }
-
+        
         .settings-header {
             padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
             font-weight: 700;
             font-size: 0.9rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
-        .settings-item {
+        
+        .setting-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
         }
-
-        .settings-item:last-child {
-            border-bottom: none;
-        }
-
-        .settings-label {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .settings-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .settings-desc {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-        }
-
-        /* Toggle Switch */
+        .setting-item:last-child { border-bottom: none; }
+        
+        .setting-label { display: flex; flex-direction: column; gap: 2px; }
+        .setting-title { font-size: 0.9rem; font-weight: 600; }
+        .setting-desc { color: var(--text-muted); font-size: 0.7rem; }
+        
         .toggle {
-            position: relative;
-            width: 48px;
-            height: 26px;
-            background: var(--border-color);
+            width: 48px; height: 26px;
+            background: var(--border);
             border-radius: 13px;
+            position: relative;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background 0.3s;
         }
-
-        .toggle.active {
-            background: var(--primary);
-        }
-
+        .toggle.on { background: var(--primary); }
         .toggle::after {
             content: '';
             position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 20px;
-            height: 20px;
+            top: 3px; left: 3px;
+            width: 20px; height: 20px;
             background: white;
             border-radius: 50%;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s;
         }
-
-        .toggle.active::after {
-            transform: translateX(22px);
-        }
-
-        /* Input Group */
-        .input-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .input-field {
-            background: var(--bg-glass);
-            border: 1px solid var(--border-color);
+        .toggle.on::after { transform: translateX(22px); }
+        
+        .select-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
             border-radius: 10px;
             padding: 8px 12px;
-            color: var(--text-primary);
+            color: var(--text-main);
             font-family: inherit;
             font-size: 0.85rem;
-            width: 80px;
-            text-align: center;
+            cursor: pointer;
         }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .input-btn {
+        
+        .btn-small {
             background: var(--primary);
             border: none;
-            border-radius: 10px;
-            padding: 8px 15px;
+            border-radius: 8px;
+            padding: 8px 16px;
             color: white;
             font-family: inherit;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
         }
-
-        /* Select */
-        .select-field {
-            background: var(--bg-glass);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 8px 12px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        .select-field:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* Statistics */
-        .chart-container {
+        
+        /* ===== Chart ===== */
+        .chart-box {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
             padding: 15px;
             margin-bottom: 15px;
         }
-
-        .chart-title {
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-        }
-
-        /* Modal */
+        .chart-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; }
+        
+        /* ===== Modal ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -848,395 +576,315 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2000;
+            z-index: 500;
             padding: 20px;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
-
-        .modal-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        
         .modal {
-            background: var(--bg-dark);
-            border: 1px solid var(--border-color);
+            background: var(--bg-card);
             border-radius: 20px;
+            padding: 25px;
             width: 100%;
-            max-width: 320px;
-            padding: 20px;
+            max-width: 350px;
             transform: scale(0.9);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s;
         }
-
-        .modal-overlay.show .modal {
-            transform: scale(1);
-        }
-
+        .modal-overlay.show .modal { transform: scale(1); }
+        
         .modal-title {
             font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 15px;
             text-align: center;
+            margin-bottom: 20px;
         }
-
+        
         .modal-input {
             width: 100%;
             padding: 12px 15px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-primary);
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-main);
             font-family: inherit;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
             text-align: center;
         }
-
-        .modal-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .modal-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .modal-btn {
-            padding: 12px;
-            border: none;
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-btn.primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .modal-btn.secondary {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-        }
-
-        /* Toast */
+        .modal-input:focus { outline: none; border-color: var(--primary); }
+        
+        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .modal-btn { padding: 12px; border-radius: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+        .modal-btn.primary { background: var(--primary); border: none; color: white; }
+        .modal-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        
+        /* ===== Toast ===== */
         .toast {
             position: fixed;
             top: 20px;
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            padding: 12px 20px;
+            transform: translateX(-50%) translateY(-80px);
+            padding: 12px 24px;
             border-radius: 12px;
             font-size: 0.9rem;
             font-weight: 600;
-            z-index: 2500;
-            transition: transform 0.4s ease;
+            z-index: 600;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
+        .toast.show { transform: translateX(-50%) translateY(0); }
         .toast.success { background: var(--success); color: white; }
         .toast.error { background: var(--danger); color: white; }
         .toast.info { background: var(--primary); color: white; }
         .toast.warning { background: var(--warning); color: white; }
-
-        /* Loading */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-dark);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            transition: opacity 0.5s ease;
+        
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        
+        /* ===== Responsive ===== */
+        @media (min-width: 768px) {
+            .tabs-container { max-width: 600px; margin: 20px auto; }
+            .tab-content { max-width: 600px; margin: 0 auto; }
+            .header { padding: 15px 30px; }
+            .login-box { padding: 50px; }
+            .stats-grid { grid-template-columns: repeat(4, 1fr); }
+            .actions-grid { grid-template-columns: repeat(4, 1fr); }
         }
-
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: var(--text-muted);
-            margin-top: 15px;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.3);
-            border-radius: 2px;
+        
+        @media (min-width: 1024px) {
+            .tabs-container { max-width: 800px; }
+            .tab-content { max-width: 800px; }
+            .lock-btn { width: 140px; height: 140px; font-size: 3.2rem; }
+            .lock-glow { width: 180px; height: 180px; }
         }
     </style>
 </head>
 <body>
-    <!-- Background -->
-    <div class="bg-animation"></div>
-
-    <!-- Loading -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">جاري التحميل...</div>
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">جاري التحميل...</div>
     </div>
 
-    <!-- Password Screen -->
-    <div class="password-screen" id="passwordScreen">
-        <div class="password-container">
-            <div class="password-icon">🔐</div>
-            <h2 class="password-title">الخزنة الذكية</h2>
-            <p class="password-subtitle">أدخل كلمة المرور</p>
-            <input type="password" class="password-input" id="passwordInput" placeholder="••••••" maxlength="10">
-            <button class="password-btn" onclick="checkPassword()">دخول</button>
-            <div class="password-error" id="passwordError"></div>
+    <!-- Login -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <div class="login-icon">🔐</div>
+            <h1 class="login-title">الخزنة الذكية</h1>
+            <p class="login-sub">أدخل كلمة المرور للدخول</p>
+            <div class="input-group">
+                <input type="password" class="input-field" id="loginInput" placeholder="••••••" maxlength="10">
+            </div>
+            <button class="btn btn-primary" id="loginBtn">دخول</button>
+            <div class="login-error" id="loginError"></div>
         </div>
     </div>
 
     <!-- Main App -->
-    <div class="app-container" id="appContainer">
+    <div class="app" id="mainApp">
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <h1><span>🔐</span><span>الخزنة الذكية</span></h1>
-                <div class="status-badge disconnected" id="statusBadge">
+                <h1><span>🔐</span> الخزنة الذكية</h1>
+                <div class="status-badge offline" id="statusBadge">
                     <span class="status-dot"></span>
-                    <span>غير متصل</span>
+                    <span id="statusText">غير متصل</span>
                 </div>
             </div>
-            <div class="header-right">
-                <button class="header-btn" onclick="showNotifications()" title="الإشعارات">🔔</button>
-                <button class="header-btn" onclick="logout()" title="تسجيل خروج">🚪</button>
+            <div class="header-btns">
+                <button class="header-btn" id="notifyBtn" title="الإشعارات">🔔</button>
+                <button class="header-btn" id="logoutBtn" title="خروج">🚪</button>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Tabs -->
+        <!-- Tabs -->
+        <div class="tabs-container">
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('control')">التحكم</button>
-                <button class="tab" onclick="switchTab('cards')">البطاقات</button>
-                <button class="tab" onclick="switchTab('settings')">الإعدادات</button>
-                <button class="tab" onclick="switchTab('stats')">الإحصائيات</button>
+                <button class="tab-btn active" data-tab="control">التحكم</button>
+                <button class="tab-btn" data-tab="cards">البطاقات</button>
+                <button class="tab-btn" data-tab="settings">الإعدادات</button>
+                <button class="tab-btn" data-tab="stats">الإحصائيات</button>
+            </div>
+        </div>
+
+        <!-- Control Tab -->
+        <div class="tab-content active" id="controlTab">
+            <div class="lock-section">
+                <div class="lock-wrapper">
+                    <div class="lock-glow" id="lockGlow"></div>
+                    <button class="lock-btn" id="lockBtn"><span id="lockIcon">🔒</span></button>
+                </div>
+                <div class="lock-status closed" id="lockStatus">الخزنة مقفلة</div>
             </div>
 
-            <!-- Control Tab -->
-            <div class="tab-content active" id="controlTab">
-                <!-- Lock Control -->
-                <div class="lock-control">
-                    <div class="lock-button-wrapper">
-                        <div class="lock-glow" id="lockGlow"></div>
-                        <button class="lock-button" id="lockButton" onclick="toggleSafe()">
-                            <span id="lockIcon">🔒</span>
-                        </button>
-                    </div>
-                    <div class="status-text locked" id="statusText">الخزنة مقفلة</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-label">عدد الفتحات</div>
+                    <div class="stat-value" id="statOpens" style="color: var(--primary-light)">0</div>
                 </div>
-
-                <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-label">عدد الفتحات</div>
-                        <div class="stat-value" id="openCount" style="color: var(--primary-light)">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⏱️</div>
-                        <div class="stat-label">إغلاق تلقائي</div>
-                        <div class="stat-value" id="autoCloseDisplay" style="color: var(--accent)">3 ث</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🎫</div>
-                        <div class="stat-label">آخر طريقة</div>
-                        <div class="stat-value" id="accessType" style="color: var(--success)">-</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🕐</div>
-                        <div class="stat-label">آخر نشاط</div>
-                        <div class="stat-value" id="lastAccess" style="color: var(--warning)">-</div>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-label">الإغلاق التلقائي</div>
+                    <div class="stat-value" id="statAutoClose" style="color: var(--accent)">3 ث</div>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                    <button class="action-btn danger" onclick="triggerAlarm()">
-                        <span class="icon">🚨</span>
-                        <span>إنذار طوارئ</span>
-                    </button>
-                    <button class="action-btn warning" onclick="toggleGuestMode()">
-                        <span class="icon" id="guestIcon">👤</span>
-                        <span id="guestText">وضع الضيف</span>
-                    </button>
-                    <button class="action-btn success" onclick="toggleSilentMode()">
-                        <span class="icon" id="silentIcon">🔊</span>
-                        <span id="silentText">الصوت مفعل</span>
-                    </button>
-                    <button class="action-btn" onclick="exportLog()">
-                        <span class="icon">📥</span>
-                        <span>تصدير السجل</span>
-                    </button>
+                <div class="stat-card">
+                    <div class="stat-icon">🎫</div>
+                    <div class="stat-label">آخر طريقة</div>
+                    <div class="stat-value" id="statAccessType" style="color: var(--success)">-</div>
                 </div>
-
-                <!-- Log -->
-                <div class="section-title">📋 سجل العمليات</div>
-                <div class="log-container">
-                    <div class="log-header">
-                        <div class="log-title">📋 السجل</div>
-                        <div class="log-actions">
-                            <button class="log-btn" onclick="clearLog()">مسح</button>
-                        </div>
-                    </div>
-                    <div class="log-list" id="logList">
-                        <div class="empty-log">لا توجد عمليات</div>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🕐</div>
+                    <div class="stat-label">آخر نشاط</div>
+                    <div class="stat-value" id="statLastTime" style="color: var(--warning)">-</div>
                 </div>
             </div>
 
-            <!-- Cards Tab -->
-            <div class="tab-content" id="cardsTab">
-                <div class="section-title">💳 البطاقات المصرحة</div>
-                <div class="cards-list" id="cardsList">
-                    <!-- Cards will be loaded here -->
-                </div>
-                <button class="action-btn" onclick="showAddCardModal()" style="width: 100%; margin-top: 10px;">
-                    <span class="icon">➕</span>
-                    <span>إضافة بطاقة جديدة</span>
+            <div class="actions-grid">
+                <button class="action-btn danger" id="alarmBtn">
+                    <span class="icon">🚨</span>
+                    <span>إنذار</span>
+                </button>
+                <button class="action-btn warning" id="guestBtn">
+                    <span class="icon">👤</span>
+                    <span>وضع الضيف</span>
+                </button>
+                <button class="action-btn success" id="silentBtn">
+                    <span class="icon">🔊</span>
+                    <span>الصوت</span>
+                </button>
+                <button class="action-btn" id="exportBtn">
+                    <span class="icon">📥</span>
+                    <span>تصدير</span>
                 </button>
             </div>
 
-            <!-- Settings Tab -->
-            <div class="tab-content" id="settingsTab">
-                <!-- Security Settings -->
-                <div class="settings-section">
-                    <div class="settings-header">🔒 الأمان</div>
-                    <div class="settings-item">
-                        <div class="settings-label">
-                            <div class="settings-title">كلمة السر</div>
-                            <div class="settings-desc">تغيير كلمة سر التطبيق</div>
-                        </div>
-                        <button class="input-btn" onclick="showPasswordModal()">تغيير</button>
-                    </div>
+            <div class="section-title">📋 سجل العمليات</div>
+            <div class="log-box">
+                <div class="log-header">
+                    <div class="log-title">📋 السجل</div>
+                    <button class="log-btn" id="clearLogBtn">مسح</button>
                 </div>
-
-                <!-- Timing Settings -->
-                <div class="settings-section">
-                    <div class="settings-header">⏱️ التوقيت</div>
-                    <div class="settings-item">
-                        <div class="settings-label">
-                            <div class="settings-title">الإغلاق التلقائي</div>
-                            <div class="settings-desc">الوقت قبل الإغلاق التلقائي</div>
-                        </div>
-                        <select class="select-field" id="autoCloseSelect" onchange="updateAutoClose()">
-                            <option value="3">3 ثواني</option>
-                            <option value="5">5 ثواني</option>
-                            <option value="10">10 ثواني</option>
-                            <option value="15">15 ثانية</option>
-                        </select>
-                    </div>
+                <div class="log-list" id="logList">
+                    <div class="empty-state">لا توجد عمليات سابقة</div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Mode Settings -->
-                <div class="settings-section">
-                    <div class="settings-header">🎛️ الأوضاع</div>
-                    <div class="settings-item">
-                        <div class="settings-label">
-                            <div class="settings-title">وضع الضيف</div>
-                            <div class="settings-desc">فتح لمرة واحدة فقط</div>
-                        </div>
-                        <div class="toggle" id="guestToggle" onclick="toggleGuestMode()"></div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">
-                            <div class="settings-title">الوضع الصامت</div>
-                            <div class="settings-desc">تعطيل أصوات التطبيق</div>
-                        </div>
-                        <div class="toggle" id="silentToggle" onclick="toggleSilentMode()"></div>
-                    </div>
-                </div>
+        <!-- Cards Tab -->
+        <div class="tab-content" id="cardsTab">
+            <div class="section-title">💳 البطاقات المصرحة</div>
+            <div class="cards-list" id="cardsList">
+                <div class="empty-state">لا توجد بطاقات</div>
+            </div>
+            <button class="action-btn" id="addCardBtn" style="width: 100%; margin-top: 10px;">
+                <span class="icon">➕</span>
+                <span>إضافة بطاقة جديدة</span>
+            </button>
+        </div>
 
-                <!-- Notifications -->
-                <div class="settings-section">
-                    <div class="settings-header">🔔 الإشعارات</div>
-                    <div class="settings-item">
-                        <div class="settings-label">
-                            <div class="settings-title">إشعارات Push</div>
-                            <div class="settings-desc">تنبيه عند الفتح أو الإنذار</div>
-                        </div>
-                        <div class="toggle" id="notifyToggle" onclick="toggleNotifications()"></div>
+        <!-- Settings Tab -->
+        <div class="tab-content" id="settingsTab">
+            <div class="settings-box">
+                <div class="settings-header">🔒 الأمان</div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">كلمة السر</div>
+                        <div class="setting-desc">تغيير كلمة سر التطبيق</div>
                     </div>
+                    <button class="btn-small" id="changePassBtn">تغيير</button>
                 </div>
             </div>
 
-            <!-- Stats Tab -->
-            <div class="tab-content" id="statsTab">
-                <div class="section-title">📊 الإحصائيات</div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">🔓</div>
-                        <div class="stat-label">إجمالي الفتحات</div>
-                        <div class="stat-value" id="totalOpens" style="color: var(--success)">0</div>
+            <div class="settings-box">
+                <div class="settings-header">⏱️ التوقيت</div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">الإغلاق التلقائي</div>
+                        <div class="setting-desc">الوقت قبل الإغلاق التلقائي</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📱</div>
-                        <div class="stat-label">من التطبيق</div>
-                        <div class="stat-value" id="appOpens" style="color: var(--primary-light)">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💳</div>
-                        <div class="stat-label">من البطاقة</div>
-                        <div class="stat-value" id="rfidOpens" style="color: var(--accent)">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🚨</div>
-                        <div class="stat-label">محاولات فاشلة</div>
-                        <div class="stat-value" id="failedAttempts" style="color: var(--danger)">0</div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <div class="chart-title">📈 توزيع طريقة الفتح</div>
-                    <canvas id="accessChart"></canvas>
-                </div>
-
-                <div class="section-title">⚠️ سجل المحاولات الفاشلة</div>
-                <div class="log-container">
-                    <div class="log-list" id="failedLogList" style="max-height: 150px;">
-                        <div class="empty-log">لا توجد محاولات فاشلة</div>
-                    </div>
+                    <select class="select-box" id="autoCloseSelect">
+                        <option value="3">3 ثواني</option>
+                        <option value="5">5 ثواني</option>
+                        <option value="10">10 ثواني</option>
+                        <option value="15">15 ثانية</option>
+                    </select>
                 </div>
             </div>
-        </main>
+
+            <div class="settings-box">
+                <div class="settings-header">🎛️ الأوضاع</div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">وضع الضيف</div>
+                        <div class="setting-desc">فتح لمرة واحدة فقط</div>
+                    </div>
+                    <div class="toggle" id="guestToggle"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">الوضع الصامت</div>
+                        <div class="setting-desc">تعطيل أصوات التطبيق</div>
+                    </div>
+                    <div class="toggle" id="silentToggle"></div>
+                </div>
+            </div>
+
+            <div class="settings-box">
+                <div class="settings-header">🔔 الإشعارات</div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">إشعارات Push</div>
+                        <div class="setting-desc">تنبيه عند الفتح أو الإنذار</div>
+                    </div>
+                    <div class="toggle" id="notifyToggle"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Tab -->
+        <div class="tab-content" id="statsTab">
+            <div class="section-title">📊 الإحصائيات</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🔓</div>
+                    <div class="stat-label">إجمالي الفتحات</div>
+                    <div class="stat-value" id="totalOpens" style="color: var(--success)">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📱</div>
+                    <div class="stat-label">من التطبيق</div>
+                    <div class="stat-value" id="appOpens" style="color: var(--primary-light)">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💳</div>
+                    <div class="stat-label">من البطاقة</div>
+                    <div class="stat-value" id="rfidOpens" style="color: var(--accent)">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-label">محاولات فاشلة</div>
+                    <div class="stat-value" id="failedCount" style="color: var(--danger)">0</div>
+                </div>
+            </div>
+
+            <div class="chart-box">
+                <div class="chart-title">📈 توزيع طريقة الفتح</div>
+                <canvas id="accessChart"></canvas>
+            </div>
+
+            <div class="section-title">⚠️ المحاولات الفاشلة</div>
+            <div class="log-box">
+                <div class="log-list" id="failedList" style="max-height: 150px;">
+                    <div class="empty-state">لا توجد محاولات فاشلة</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Add Card Modal -->
@@ -1244,24 +892,23 @@
         <div class="modal">
             <div class="modal-title">💳 إضافة بطاقة جديدة</div>
             <input type="text" class="modal-input" id="newCardUid" placeholder="UID البطاقة (مثال: FE191905)" maxlength="8">
-            <input type="text" class="modal-input" id="newCardLabel" placeholder="اسم البطاقة (اختياري)">
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="closeModal('addCardModal')">إلغاء</button>
-                <button class="modal-btn primary" onclick="addCard()">إضافة</button>
+            <div class="modal-btns">
+                <button class="modal-btn secondary" id="cancelAddCard">إلغاء</button>
+                <button class="modal-btn primary" id="confirmAddCard">إضافة</button>
             </div>
         </div>
     </div>
 
     <!-- Change Password Modal -->
-    <div class="modal-overlay" id="passwordModal">
+    <div class="modal-overlay" id="passModal">
         <div class="modal">
             <div class="modal-title">🔑 تغيير كلمة السر</div>
-            <input type="password" class="modal-input" id="currentPassword" placeholder="كلمة السر الحالية">
-            <input type="password" class="modal-input" id="newPassword" placeholder="كلمة السر الجديدة">
-            <input type="password" class="modal-input" id="confirmPassword" placeholder="تأكيد كلمة السر">
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="closeModal('passwordModal')">إلغاء</button>
-                <button class="modal-btn primary" onclick="changePassword()">تغيير</button>
+            <input type="password" class="modal-input" id="currentPass" placeholder="كلمة السر الحالية">
+            <input type="password" class="modal-input" id="newPass" placeholder="كلمة السر الجديدة">
+            <input type="password" class="modal-input" id="confirmPass" placeholder="تأكيد كلمة السر">
+            <div class="modal-btns">
+                <button class="modal-btn secondary" id="cancelPass">إلغاء</button>
+                <button class="modal-btn primary" id="confirmPass">تغيير</button>
             </div>
         </div>
     </div>
@@ -1281,491 +928,447 @@
             appId: "1:601253161068:web:b8fda4072eaa824acf1049"
         };
 
-        // ==================== Global Variables ====================
+        // ==================== State ====================
         let db = null;
         let connected = false;
         let safeOpen = false;
         let guestMode = false;
         let silentMode = false;
-        let notificationsEnabled = false;
+        let notifyEnabled = false;
         let autoCloseTime = 3;
         let openCount = 0;
-        let authorizedCards = {};
-        let operationLog = {};
-        let accessChart = null;
+        let cards = {};
+        let logs = {};
+        let chart = null;
 
-        // ==================== Password ====================
-        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkPassword();
+        // ==================== DOM Elements ====================
+        const $ = id => document.getElementById(id);
+        const loader = $('loader');
+        const loginScreen = $('loginScreen');
+        const mainApp = $('mainApp');
+        const loginInput = $('loginInput');
+        const loginBtn = $('loginBtn');
+        const loginError = $('loginError');
+        const statusBadge = $('statusBadge');
+        const statusText = $('statusText');
+        const lockBtn = $('lockBtn');
+        const lockIcon = $('lockIcon');
+        const lockGlow = $('lockGlow');
+        const lockStatus = $('lockStatus');
+        const statOpens = $('statOpens');
+        const statAutoClose = $('statAutoClose');
+        const statAccessType = $('statAccessType');
+        const statLastTime = $('statLastTime');
+        const alarmBtn = $('alarmBtn');
+        const guestBtn = $('guestBtn');
+        const silentBtn = $('silentBtn');
+        const exportBtn = $('exportBtn');
+        const clearLogBtn = $('clearLogBtn');
+        const logList = $('logList');
+        const cardsList = $('cardsList');
+        const addCardBtn = $('addCardBtn');
+        const addCardModal = $('addCardModal');
+        const newCardUid = $('newCardUid');
+        const cancelAddCard = $('cancelAddCard');
+        const confirmAddCard = $('confirmAddCard');
+        const changePassBtn = $('changePassBtn');
+        const passModal = $('passModal');
+        const currentPass = $('currentPass');
+        const newPass = $('newPass');
+        const confirmPassInput = $('confirmPass');
+        const cancelPass = $('cancelPass');
+        const confirmPassBtn = $('confirmPass');
+        const autoCloseSelect = $('autoCloseSelect');
+        const guestToggle = $('guestToggle');
+        const silentToggle = $('silentToggle');
+        const notifyToggle = $('notifyToggle');
+        const notifyBtn = $('notifyBtn');
+        const logoutBtn = $('logoutBtn');
+        const toast = $('toast');
+        const totalOpens = $('totalOpens');
+        const appOpens = $('appOpens');
+        const rfidOpens = $('rfidOpens');
+        const failedCount = $('failedCount');
+        const failedList = $('failedList');
+
+        // ==================== Toast ====================
+        function showToast(msg, type = 'info') {
+            toast.textContent = msg;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // ==================== Login ====================
+        async function handleLogin() {
+            const pass = loginInput.value.trim();
+            if (!pass) {
+                loginInput.classList.add('error');
+                loginError.textContent = '❌ أدخل كلمة المرور';
+                setTimeout(() => loginInput.classList.remove('error'), 500);
+                return;
+            }
+
+            let correctPass = '123456';
+            try {
+                const snap = await db.ref('app_password').once('value');
+                if (snap.exists()) correctPass = snap.val();
+            } catch (e) {}
+
+            if (pass === correctPass) {
+                loginScreen.classList.add('hide');
+                mainApp.classList.add('show');
+                sessionStorage.setItem('auth', '1');
+            } else {
+                loginInput.classList.add('error');
+                loginError.textContent = '❌ كلمة المرور غير صحيحة';
+                setTimeout(() => loginInput.classList.remove('error'), 500);
+            }
+        }
+
+        loginBtn.onclick = handleLogin;
+        loginInput.onkeypress = e => { if (e.key === 'Enter') handleLogin(); };
+        logoutBtn.onclick = () => { sessionStorage.removeItem('auth'); location.reload(); };
+
+        // ==================== Tabs ====================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                $(btn.dataset.tab + 'Tab').classList.add('active');
+                if (btn.dataset.tab === 'stats') setTimeout(renderChart, 100);
+            };
         });
 
-        async function checkPassword() {
-            const input = document.getElementById('passwordInput');
-            const error = document.getElementById('passwordError');
-            const password = input.value;
-
-            let correctPassword = "123456";
-            if (db) {
-                const snapshot = await db.ref('app_password').once('value');
-                if (snapshot.exists()) correctPassword = snapshot.val();
-            }
-
-            if (password === correctPassword) {
-                document.getElementById('passwordScreen').classList.add('hidden');
-                document.getElementById('appContainer').classList.add('visible');
-                sessionStorage.setItem('authenticated', 'true');
-            } else {
-                input.classList.add('error');
-                error.textContent = '❌ كلمة المرور غير صحيحة';
-                setTimeout(() => input.classList.remove('error'), 500);
-            }
-        }
-
-        function logout() {
-            sessionStorage.removeItem('authenticated');
-            location.reload();
-        }
-
-        // ==================== Initialize ====================
+        // ==================== Init ====================
         function init() {
-            if (sessionStorage.getItem('authenticated') === 'true') {
-                document.getElementById('passwordScreen').classList.add('hidden');
-                document.getElementById('appContainer').classList.add('visible');
-            }
-
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
 
+            // Check auth
+            if (sessionStorage.getItem('auth') === '1') {
+                loginScreen.classList.add('hide');
+                mainApp.classList.add('show');
+            }
+
             // Connection
-            db.ref('.info/connected').on('value', snapshot => {
-                connected = snapshot.val();
-                updateConnectionStatus();
+            db.ref('.info/connected').on('value', snap => {
+                connected = snap.val();
+                statusBadge.className = 'status-badge ' + (connected ? 'online' : 'offline');
+                statusText.textContent = connected ? 'متصل' : 'غير متصل';
             });
 
             // Safe Status
-            db.ref('safe_status').on('value', snapshot => {
-                safeOpen = snapshot.val() === true;
+            db.ref('safe_status').on('value', snap => {
+                safeOpen = snap.val() === true;
                 updateLockUI();
             });
 
-            // Auto Close Time
-            db.ref('auto_close_time').on('value', snapshot => {
-                autoCloseTime = snapshot.val() || 3;
-                document.getElementById('autoCloseSelect').value = autoCloseTime;
-                document.getElementById('autoCloseDisplay').textContent = autoCloseTime + ' ث';
+            // Auto Close
+            db.ref('auto_close_time').on('value', snap => {
+                autoCloseTime = snap.val() || 3;
+                autoCloseSelect.value = autoCloseTime;
+                statAutoClose.textContent = autoCloseTime + ' ث';
             });
 
             // Open Count
-            db.ref('open_count').on('value', snapshot => {
-                openCount = snapshot.val() || 0;
-                document.getElementById('openCount').textContent = openCount;
-                document.getElementById('totalOpens').textContent = openCount;
+            db.ref('open_count').on('value', snap => {
+                openCount = snap.val() || 0;
+                statOpens.textContent = openCount;
+                totalOpens.textContent = openCount;
             });
 
             // Guest Mode
-            db.ref('guest_mode').on('value', snapshot => {
-                guestMode = snapshot.val() === true;
-                updateGuestUI();
+            db.ref('guest_mode').on('value', snap => {
+                guestMode = snap.val() === true;
+                guestToggle.classList.toggle('on', guestMode);
+                guestBtn.classList.toggle('active', guestMode);
             });
 
             // Silent Mode
-            db.ref('silent_mode').on('value', snapshot => {
-                silentMode = snapshot.val() === true;
-                updateSilentUI();
+            db.ref('silent_mode').on('value', snap => {
+                silentMode = snap.val() === true;
+                silentToggle.classList.toggle('on', silentMode);
+                silentBtn.classList.toggle('active', silentMode);
+                silentBtn.querySelector('span:last-child').textContent = silentMode ? 'صامت' : 'الصوت';
+                silentBtn.querySelector('.icon').textContent = silentMode ? '🔇' : '🔊';
             });
 
             // Access Type
-            db.ref('access_type').on('value', snapshot => {
-                const type = snapshot.val();
-                let display = '-';
-                if (type === 'APP') display = 'تطبيق';
-                else if (type === 'RFID') display = 'بطاقة';
-                else if (type === 'AUTO') display = 'تلقائي';
-                else if (type === 'GUEST') display = 'ضيف';
-                document.getElementById('accessType').textContent = display;
+            db.ref('access_type').on('value', snap => {
+                const t = snap.val();
+                let txt = '-';
+                if (t === 'APP') txt = 'تطبيق';
+                else if (t === 'RFID') txt = 'بطاقة';
+                else if (t === 'AUTO') txt = 'تلقائي';
+                else if (t === 'GUEST') txt = 'ضيف';
+                statAccessType.textContent = txt;
             });
 
             // Last Access
-            db.ref('last_access').on('value', snapshot => {
-                const val = snapshot.val();
-                if (val && val !== '-') {
-                    document.getElementById('lastAccess').textContent = val.split(' ')[1] || val;
+            db.ref('last_access').on('value', snap => {
+                const v = snap.val();
+                if (v && v !== '-') {
+                    const parts = v.split(' ');
+                    statLastTime.textContent = parts[1] || v;
                 }
             });
 
-            // Authorized Cards
-            db.ref('authorized_cards').on('value', snapshot => {
-                authorizedCards = snapshot.val() || {};
+            // Cards
+            db.ref('authorized_cards').on('value', snap => {
+                cards = snap.val() || {};
                 renderCards();
             });
 
-            // Operation Log
-            db.ref('operation_log').orderByKey().limitToLast(50).on('value', snapshot => {
-                operationLog = snapshot.val() || {};
+            // Log
+            db.ref('operation_log').orderByKey().limitToLast(50).on('value', snap => {
+                logs = snap.val() || {};
                 renderLog();
                 updateStats();
             });
 
             // Alarm
-            db.ref('alarm').on('value', snapshot => {
-                if (snapshot.val() === true) {
+            db.ref('alarm').on('value', snap => {
+                if (snap.val() === true) {
                     showToast('🚨 تم تفعيل الإنذار!', 'error');
-                    if (notificationsEnabled) sendNotification('إنذار!', 'تم تفعيل إنذار الخزنة');
+                    if (notifyEnabled) sendNotify('إنذار!', 'تم تفعيل إنذار الخزنة');
                 }
             });
 
-            // Hide loading
-            setTimeout(() => {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-            }, 500);
+            // Hide loader
+            setTimeout(() => loader.classList.add('hide'), 400);
         }
 
         // ==================== UI Updates ====================
-        function updateConnectionStatus() {
-            const badge = document.getElementById('statusBadge');
-            if (connected) {
-                badge.className = 'status-badge connected';
-                badge.innerHTML = '<span class="status-dot"></span><span>متصل</span>';
-            } else {
-                badge.className = 'status-badge disconnected';
-                badge.innerHTML = '<span class="status-dot"></span><span>غير متصل</span>';
-            }
-        }
-
         function updateLockUI() {
-            const btn = document.getElementById('lockButton');
-            const icon = document.getElementById('lockIcon');
-            const text = document.getElementById('statusText');
-            const glow = document.getElementById('lockGlow');
-
-            if (safeOpen) {
-                btn.classList.add('unlocked');
-                icon.textContent = '🔓';
-                text.className = 'status-text unlocked';
-                text.textContent = 'الخزنة مفتوحة';
-                glow.classList.add('unlocked');
-            } else {
-                btn.classList.remove('unlocked');
-                icon.textContent = '🔒';
-                text.className = 'status-text locked';
-                text.textContent = 'الخزنة مقفلة';
-                glow.classList.remove('unlocked');
-            }
+            lockBtn.classList.toggle('open', safeOpen);
+            lockIcon.textContent = safeOpen ? '🔓' : '🔒';
+            lockGlow.classList.toggle('open', safeOpen);
+            lockStatus.className = 'lock-status ' + (safeOpen ? 'open' : 'closed');
+            lockStatus.textContent = safeOpen ? 'الخزنة مفتوحة' : 'الخزنة مقفلة';
         }
 
-        function updateGuestUI() {
-            const toggle = document.getElementById('guestToggle');
-            const icon = document.getElementById('guestIcon');
-            const text = document.getElementById('guestText');
-            
-            if (guestMode) {
-                toggle.classList.add('active');
-                icon.textContent = '✅';
-                text.textContent = 'وضع الضيف مفعل';
-            } else {
-                toggle.classList.remove('active');
-                icon.textContent = '👤';
-                text.textContent = 'وضع الضيف';
-            }
-        }
-
-        function updateSilentUI() {
-            const toggle = document.getElementById('silentToggle');
-            const icon = document.getElementById('silentIcon');
-            const text = document.getElementById('silentText');
-            
-            if (silentMode) {
-                toggle.classList.add('active');
-                icon.textContent = '🔇';
-                text.textContent = 'الوضع الصامت';
-            } else {
-                toggle.classList.remove('active');
-                icon.textContent = '🔊';
-                text.textContent = 'الصوت مفعل';
-            }
-        }
-
-        // ==================== Tabs ====================
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            
-            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.add('active');
-
-            if (tabName === 'stats') {
-                setTimeout(() => renderChart(), 100);
-            }
-        }
-
-        // ==================== Actions ====================
-        async function toggleSafe() {
-            if (!connected) {
-                showToast('⚠️ غير متصل', 'error');
-                return;
-            }
+        // ==================== Lock Control ====================
+        lockBtn.onclick = async () => {
+            if (!connected) { showToast('⚠️ غير متصل', 'error'); return; }
 
             const newStatus = !safeOpen;
-            const timestamp = getTimestamp();
+            const ts = getTime();
 
             await db.ref('safe_status').set(newStatus);
             await db.ref('access_type').set(guestMode ? 'GUEST' : 'APP');
-            await db.ref('last_access').set(timestamp);
+            await db.ref('last_access').set(ts);
 
             if (newStatus) {
                 await db.ref('open_count').set(firebase.database.ServerValue.increment(1));
-                
                 if (guestMode) {
                     await db.ref('guest_mode').set(false);
                     showToast('✅ فتح الضيف - تم التعطيل', 'success');
                 } else {
                     showToast('✅ تم الفتح', 'success');
                 }
-
-                if (notificationsEnabled) {
-                    sendNotification('تم الفتح', 'تم فتح الخزنة من التطبيق');
-                }
+                if (notifyEnabled) sendNotify('تم الفتح', 'تم فتح الخزنة');
             } else {
                 showToast('🔒 تم الإغلاق', 'info');
             }
 
             await db.ref('operation_log').push({
-                timestamp: timestamp,
+                timestamp: ts,
                 source: guestMode ? 'GUEST' : 'APP',
                 action: newStatus ? 'OPENED' : 'CLOSED'
             });
-        }
+        };
 
-        async function triggerAlarm() {
-            if (!connected) {
-                showToast('⚠️ غير متصل', 'error');
-                return;
-            }
-
+        // ==================== Actions ====================
+        alarmBtn.onclick = async () => {
+            if (!connected) { showToast('⚠️ غير متصل', 'error'); return; }
             await db.ref('alarm').set(true);
             showToast('🚨 تم تشغيل الإنذار!', 'error');
+            if (notifyEnabled) sendNotify('إنذار!', 'تم تشغيل إنذار الطوارئ');
+        };
 
-            if (notificationsEnabled) {
-                sendNotification('إنذار!', 'تم تشغيل إنذار الطوارئ');
-            }
-        }
-
-        async function toggleGuestMode() {
+        guestBtn.onclick = async () => {
             if (!connected) return;
             await db.ref('guest_mode').set(!guestMode);
             showToast(guestMode ? '👤 تم تعطيل وضع الضيف' : '✅ تم تفعيل وضع الضيف', 'info');
-        }
+        };
 
-        async function toggleSilentMode() {
+        silentBtn.onclick = async () => {
             if (!connected) return;
             await db.ref('silent_mode').set(!silentMode);
-            showToast(silentMode ? '🔊 تم تفعيل الصوت' : '🔇 تم تعطيل الصوت', 'info');
-        }
+        };
 
-        async function updateAutoClose() {
+        guestToggle.onclick = () => guestBtn.onclick();
+        silentToggle.onclick = () => silentBtn.onclick();
+
+        autoCloseSelect.onchange = async () => {
             if (!connected) return;
-            const value = parseInt(document.getElementById('autoCloseSelect').value);
-            await db.ref('auto_close_time').set(value);
-            document.getElementById('autoCloseDisplay').textContent = value + ' ث';
+            const v = parseInt(autoCloseSelect.value);
+            await db.ref('auto_close_time').set(v);
+            statAutoClose.textContent = v + ' ث';
             showToast('✅ تم تحديث الوقت', 'success');
-        }
+        };
+
+        exportBtn.onclick = () => {
+            const entries = Object.values(logs);
+            if (!entries.length) { showToast('❌ لا يوجد سجل', 'error'); return; }
+
+            let csv = 'التاريخ,الوقت,المصدر,العملية\n';
+            entries.forEach(l => {
+                const p = (l.timestamp || '-').split(' ');
+                csv += `${p[0] || '-'},${p[1] || '-'},${l.source || '-'},${l.action || '-'}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'safe_log_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            showToast('✅ تم التصدير', 'success');
+        };
 
         // ==================== Cards ====================
         function renderCards() {
-            const list = document.getElementById('cardsList');
-            const cards = Object.entries(authorizedCards);
-            
-            if (cards.length === 0) {
-                list.innerHTML = '<div class="empty-log">لا توجد بطاقات</div>';
+            const list = Object.entries(cards);
+            if (!list.length) {
+                cardsList.innerHTML = '<div class="empty-state">لا توجد بطاقات</div>';
                 return;
             }
 
-            let html = '';
-            cards.forEach(([key, uid]) => {
-                html += `
-                    <div class="card-item">
-                        <div class="card-info">
-                            <div class="card-icon">💳</div>
-                            <div>
-                                <div class="card-uid">${uid}</div>
-                                <div class="card-label">بطاقة مصرحة</div>
-                            </div>
+            cardsList.innerHTML = list.map(([k, v]) => `
+                <div class="card-item">
+                    <div class="card-info">
+                        <div class="card-icon">💳</div>
+                        <div>
+                            <div class="card-uid">${v}</div>
+                            <div class="card-label">بطاقة مصرحة</div>
                         </div>
-                        <button class="delete-btn" onclick="deleteCard('${key}')">حذف</button>
                     </div>
-                `;
+                    <button class="delete-btn" data-key="${k}">حذف</button>
+                </div>
+            `).join('');
+
+            cardsList.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    if (confirm('حذف البطاقة؟')) {
+                        await db.ref('authorized_cards/' + btn.dataset.key).remove();
+                        showToast('✅ تم الحذف', 'success');
+                    }
+                };
             });
-            list.innerHTML = html;
         }
 
-        function showAddCardModal() {
-            document.getElementById('newCardUid').value = '';
-            document.getElementById('newCardLabel').value = '';
-            document.getElementById('addCardModal').classList.add('show');
-        }
+        addCardBtn.onclick = () => {
+            newCardUid.value = '';
+            addCardModal.classList.add('show');
+        };
 
-        async function addCard() {
-            const uid = document.getElementById('newCardUid').value.toUpperCase().trim();
-            if (!uid || uid.length < 4) {
-                showToast('❌ UID غير صالح', 'error');
-                return;
-            }
+        cancelAddCard.onclick = () => addCardModal.classList.remove('show');
+        confirmAddCard.onclick = async () => {
+            const uid = newCardUid.value.toUpperCase().trim();
+            if (!uid || uid.length < 4) { showToast('❌ UID غير صالح', 'error'); return; }
 
-            const key = 'card_' + Date.now();
-            await db.ref('authorized_cards/' + key).set(uid);
-            closeModal('addCardModal');
-            showToast('✅ تمت إضافة البطاقة', 'success');
-        }
-
-        async function deleteCard(key) {
-            if (confirm('هل تريد حذف هذه البطاقة؟')) {
-                await db.ref('authorized_cards/' + key).remove();
-                showToast('✅ تم حذف البطاقة', 'success');
-            }
-        }
+            await db.ref('authorized_cards/card_' + Date.now()).set(uid);
+            addCardModal.classList.remove('show');
+            showToast('✅ تمت الإضافة', 'success');
+        };
 
         // ==================== Log ====================
         function renderLog() {
-            const list = document.getElementById('logList');
-            const failedList = document.getElementById('failedLogList');
-            const entries = Object.entries(operationLog).reverse();
-
-            if (entries.length === 0) {
-                list.innerHTML = '<div class="empty-log">لا توجد عمليات</div>';
-                failedList.innerHTML = '<div class="empty-log">لا توجد محاولات فاشلة</div>';
+            const entries = Object.entries(logs).reverse();
+            if (!entries.length) {
+                logList.innerHTML = '<div class="empty-state">لا توجد عمليات سابقة</div>';
+                failedList.innerHTML = '<div class="empty-state">لا توجد محاولات فاشلة</div>';
                 return;
             }
 
             let normalHtml = '';
-            let failedHtml = '';
+            let failHtml = '';
 
-            entries.slice(0, 20).forEach(([key, log]) => {
-                const item = createLogItem(log);
-                
-                if (log.action === 'ALARM' || log.action === 'FAILED') {
-                    failedHtml += item;
-                }
+            entries.slice(0, 20).forEach(([k, l]) => {
+                const item = createLogItem(l);
+                if (l.action === 'ALARM' || l.action === 'FAILED') failHtml += item;
                 normalHtml += item;
             });
 
-            list.innerHTML = normalHtml || '<div class="empty-log">لا توجد عمليات</div>';
-            failedList.innerHTML = failedHtml || '<div class="empty-log">لا توجد محاولات فاشلة</div>';
+            logList.innerHTML = normalHtml || '<div class="empty-state">لا توجد عمليات</div>';
+            failedList.innerHTML = failHtml || '<div class="empty-state">لا توجد محاولات فاشلة</div>';
         }
 
-        function createLogItem(log) {
-            const isOpen = log.action === 'OPENED';
-            const isAlarm = log.action === 'ALARM';
-            const isFailed = log.action === 'FAILED';
-            const isClosed = log.action === 'CLOSED' || log.action === 'LOCKED';
+        function createLogItem(l) {
+            const isOpen = l.action === 'OPENED';
+            const isClose = l.action === 'CLOSED' || l.action === 'LOCKED';
+            const isAlarm = l.action === 'ALARM';
+            const isFail = l.action === 'FAILED';
 
-            let iconClass = 'open';
-            let icon = '🔓';
-            let action = 'فتح الخزنة';
+            let iconCls = 'open', icon = '🔓', action = 'فتح الخزنة';
+            if (isClose) { iconCls = 'close'; icon = '🔒'; action = 'إغلاق الخزنة'; }
+            else if (isAlarm) { iconCls = 'alarm'; icon = '🚨'; action = 'إنذار'; }
+            else if (isFail) { iconCls = 'fail'; icon = '⚠️'; action = 'محاولة فاشلة'; }
 
-            if (isClosed) {
-                iconClass = 'close';
-                icon = '🔒';
-                action = 'إغلاق الخزنة';
-            } else if (isAlarm) {
-                iconClass = 'alarm';
-                icon = '🚨';
-                action = 'إنذار';
-            } else if (isFailed) {
-                iconClass = 'fail';
-                icon = '⚠️';
-                action = 'محاولة فاشلة';
-            }
+            let srcCls = 'app', srcTxt = 'تطبيق';
+            if (l.source === 'RFID') { srcCls = 'rfid'; srcTxt = 'بطاقة'; }
+            else if (l.source === 'AUTO') { srcCls = 'auto'; srcTxt = 'تلقائي'; }
+            else if (l.source === 'GUEST') { srcCls = 'guest'; srcTxt = 'ضيف'; }
+            else if (l.source === 'UNAUTHORIZED') { srcCls = 'fail'; srcTxt = 'غير مصرح'; }
 
-            let sourceClass = 'app';
-            let sourceText = 'تطبيق';
-            if (log.source === 'RFID') { sourceClass = 'rfid'; sourceText = 'بطاقة'; }
-            else if (log.source === 'AUTO') { sourceClass = 'auto'; sourceText = 'تلقائي'; }
-            else if (log.source === 'GUEST') { sourceClass = 'guest'; sourceText = 'ضيف'; }
-            else if (log.source === 'UNAUTHORIZED') { sourceClass = 'unauthorized'; sourceText = 'غير مصرح'; }
-
-            return `
-                <div class="log-item">
-                    <div class="log-icon ${iconClass}">${icon}</div>
-                    <div class="log-info">
-                        <div class="log-action">${action}</div>
-                        <div class="log-time">${log.timestamp || '-'}</div>
-                    </div>
-                    <span class="log-source ${sourceClass}">${sourceText}</span>
+            return `<div class="log-item">
+                <div class="log-icon ${iconCls}">${icon}</div>
+                <div class="log-info">
+                    <div class="log-action">${action}</div>
+                    <div class="log-time">${l.timestamp || '-'}</div>
                 </div>
-            `;
+                <span class="log-source ${srcCls}">${srcTxt}</span>
+            </div>`;
         }
 
-        async function clearLog() {
-            if (confirm('هل تريد مسح السجل؟')) {
+        clearLogBtn.onclick = async () => {
+            if (confirm('مسح السجل؟')) {
                 await db.ref('operation_log').remove();
-                showToast('✅ تم مسح السجل', 'info');
+                showToast('✅ تم المسح', 'info');
             }
-        }
+        };
 
-        function exportLog() {
-            const entries = Object.values(operationLog);
-            if (entries.length === 0) {
-                showToast('❌ لا يوجد سجل للتصدير', 'error');
-                return;
-            }
-
-            let csv = 'التاريخ,الوقت,المصدر,العملية\n';
-            entries.forEach(log => {
-                const parts = (log.timestamp || '-').split(' ');
-                csv += `${parts[0] || '-'},${parts[1] || '-'},${log.source || '-'},${log.action || '-'}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'safe_log_' + new Date().toISOString().split('T')[0] + '.csv';
-            link.click();
-
-            showToast('✅ تم تصدير السجل', 'success');
-        }
-
-        // ==================== Statistics ====================
+        // ==================== Stats ====================
         function updateStats() {
-            const entries = Object.values(operationLog);
-            
-            let appCount = 0, rfidCount = 0, failedCount = 0;
-            entries.forEach(log => {
-                if (log.action === 'OPENED') {
-                    if (log.source === 'APP' || log.source === 'GUEST') appCount++;
-                    else if (log.source === 'RFID') rfidCount++;
-                } else if (log.action === 'ALARM' || log.action === 'FAILED') {
-                    failedCount++;
+            const entries = Object.values(logs);
+            let appC = 0, rfidC = 0, failC = 0;
+
+            entries.forEach(l => {
+                if (l.action === 'OPENED') {
+                    if (l.source === 'APP' || l.source === 'GUEST') appC++;
+                    else if (l.source === 'RFID') rfidC++;
                 }
+                if (l.action === 'ALARM' || l.action === 'FAILED') failC++;
             });
 
-            document.getElementById('appOpens').textContent = appCount;
-            document.getElementById('rfidOpens').textContent = rfidCount;
-            document.getElementById('failedAttempts').textContent = failedCount;
+            appOpens.textContent = appC;
+            rfidOpens.textContent = rfidC;
+            failedCount.textContent = failC;
         }
 
         function renderChart() {
-            const ctx = document.getElementById('accessChart').getContext('2d');
-            const entries = Object.values(operationLog);
-            
-            let appCount = 0, rfidCount = 0, autoCount = 0, guestCount = 0;
-            entries.forEach(log => {
-                if (log.action === 'OPENED') {
-                    if (log.source === 'APP') appCount++;
-                    else if (log.source === 'RFID') rfidCount++;
-                    else if (log.source === 'AUTO') autoCount++;
-                    else if (log.source === 'GUEST') guestCount++;
+            const entries = Object.values(logs);
+            let appC = 0, rfidC = 0, autoC = 0, guestC = 0;
+
+            entries.forEach(l => {
+                if (l.action === 'OPENED') {
+                    if (l.source === 'APP') appC++;
+                    else if (l.source === 'RFID') rfidC++;
+                    else if (l.source === 'AUTO') autoC++;
+                    else if (l.source === 'GUEST') guestC++;
                 }
             });
 
-            if (accessChart) accessChart.destroy();
+            if (chart) chart.destroy();
 
-            accessChart = new Chart(ctx, {
+            chart = new Chart($('accessChart'), {
                 type: 'doughnut',
                 data: {
                     labels: ['تطبيق', 'بطاقة', 'تلقائي', 'ضيف'],
                     datasets: [{
-                        data: [appCount, rfidCount, autoCount, guestCount],
-                        backgroundColor: ['#6366f1', '#22d3ee', '#f59e0b', '#a855f7'],
+                        data: [appC, rfidC, autoC, guestC],
+                        backgroundColor: ['#6366f1', '#06b6d4', '#f59e0b', '#a855f7'],
                         borderWidth: 0
                     }]
                 },
@@ -1782,109 +1385,77 @@
         }
 
         // ==================== Password Change ====================
-        function showPasswordModal() {
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-            document.getElementById('passwordModal').classList.add('show');
-        }
+        changePassBtn.onclick = () => {
+            currentPass.value = '';
+            newPass.value = '';
+            confirmPassInput.value = '';
+            passModal.classList.add('show');
+        };
 
-        async function changePassword() {
-            const current = document.getElementById('currentPassword').value;
-            const newPass = document.getElementById('newPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
+        cancelPass.onclick = () => passModal.classList.remove('show');
+        confirmPassBtn.onclick = async () => {
+            const curr = currentPass.value;
+            const newP = newPass.value;
+            const conf = confirmPassInput.value;
 
-            const snapshot = await db.ref('app_password').once('value');
-            const correctPassword = snapshot.exists() ? snapshot.val() : '123456';
+            const snap = await db.ref('app_password').once('value');
+            const correct = snap.exists() ? snap.val() : '123456';
 
-            if (current !== correctPassword) {
-                showToast('❌ كلمة السر الحالية غير صحيحة', 'error');
-                return;
-            }
+            if (curr !== correct) { showToast('❌ كلمة السر الحالية خطأ', 'error'); return; }
+            if (newP.length < 4) { showToast('❌ كلمة السر قصيرة', 'error'); return; }
+            if (newP !== conf) { showToast('❌ غير متطابقتين', 'error'); return; }
 
-            if (newPass.length < 4) {
-                showToast('❌ كلمة السر قصيرة جداً', 'error');
-                return;
-            }
+            await db.ref('app_password').set(newP);
+            passModal.classList.remove('show');
+            showToast('✅ تم التغيير', 'success');
+        };
 
-            if (newPass !== confirm) {
-                showToast('❌ كلمة السر غير متطابقة', 'error');
-                return;
-            }
-
-            await db.ref('app_password').set(newPass);
-            closeModal('passwordModal');
-            showToast('✅ تم تغيير كلمة السر', 'success');
-        }
-
-        // ==================== Notifications (Push) ====================
-        async function toggleNotifications() {
+        // ==================== Notifications ====================
+        notifyBtn.onclick = notifyToggle.onclick = async () => {
             if (!('Notification' in window)) {
                 showToast('❌ المتصفح لا يدعم الإشعارات', 'error');
                 return;
             }
 
             if (Notification.permission === 'granted') {
-                notificationsEnabled = !notificationsEnabled;
-                document.getElementById('notifyToggle').classList.toggle('active', notificationsEnabled);
-                showToast(notificationsEnabled ? '✅ تم تفعيل الإشعارات' : '🔕 تم تعطيل الإشعارات', 'info');
+                notifyEnabled = !notifyEnabled;
+                notifyToggle.classList.toggle('on', notifyEnabled);
+                showToast(notifyEnabled ? '✅ تفعيل الإشعارات' : '🔕 تعطيل الإشعارات', 'info');
             } else if (Notification.permission !== 'denied') {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notificationsEnabled = true;
-                    document.getElementById('notifyToggle').classList.add('active');
-                    showToast('✅ تم تفعيل الإشعارات', 'success');
+                const perm = await Notification.requestPermission();
+                if (perm === 'granted') {
+                    notifyEnabled = true;
+                    notifyToggle.classList.add('on');
+                    showToast('✅ تفعيل الإشعارات', 'success');
                 }
             } else {
-                showToast('❌ الإشعارات محظورة من الإعدادات', 'error');
+                showToast('❌ الإشعارات محظورة', 'error');
+            }
+        };
+
+        function sendNotify(title, body) {
+            if (notifyEnabled && Notification.permission === 'granted') {
+                new Notification(title, { body, icon: '🔐' });
             }
         }
 
-        function sendNotification(title, body) {
-            if (!notificationsEnabled || Notification.permission !== 'granted') return;
-            
-            new Notification(title, {
-                body: body,
-                icon: '🔐',
-                badge: '🔐'
-            });
+        // ==================== Helpers ====================
+        function getTime() {
+            const d = new Date();
+            return d.getFullYear() + '-' +
+                   String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                   String(d.getDate()).padStart(2, '0') + ' ' +
+                   String(d.getHours()).padStart(2, '0') + ':' +
+                   String(d.getMinutes()).padStart(2, '0') + ':' +
+                   String(d.getSeconds()).padStart(2, '0');
         }
 
-        function showNotifications() {
-            showToast('🔔 الإشعارات: ' + (notificationsEnabled ? 'مفعلة' : 'معطلة'), 'info');
-        }
-
-        // ==================== Modals ====================
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        // Click outside to close
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('show');
-            });
+        // Close modals on outside click
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.onclick = e => { if (e.target === m) m.classList.remove('show'); };
         });
 
-        // ==================== Helpers ====================
-        function getTimestamp() {
-            const now = new Date();
-            return now.getFullYear() + '-' + 
-                   String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                   String(now.getDate()).padStart(2, '0') + ' ' + 
-                   String(now.getHours()).padStart(2, '0') + ':' + 
-                   String(now.getMinutes()).padStart(2, '0') + ':' + 
-                   String(now.getSeconds()).padStart(2, '0');
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type} show`;
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        // ==================== Init ====================
+        // ==================== Start ====================
         window.onload = init;
     </script>
 </body>
