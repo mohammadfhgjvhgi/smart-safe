@@ -2,126 +2,853 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0F0F1A">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0a0f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="الخزنة الذكية">
+    <meta name="mobile-web-app-capable" content="yes">
     
-    <title>الخزنة الذكية</title>
+    <title>🔐 الخزنة الذكية</title>
     
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; overflow: hidden; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 50%, #16213E 100%); color: white; display: flex; flex-direction: column; }
-        
-        .header { text-align: center; padding: 15px 20px; }
-        .header h1 { font-size: 1.6rem; background: linear-gradient(45deg, #6C63FF, #00D9FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; margin-top: 8px; }
-        .status-badge.connected { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
-        .status-badge.disconnected { background: rgba(255, 82, 82, 0.2); color: #FF5252; }
-        
-        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 20px; }
-        
-        .lock-button { width: 160px; height: 160px; border-radius: 50%; border: none; cursor: pointer; font-size: 4rem; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
-        .lock-button.locked { background: linear-gradient(135deg, #6C63FF, #00D9FF); box-shadow: 0 0 40px rgba(108, 99, 255, 0.5); }
-        .lock-button.unlocked { background: linear-gradient(135deg, #4CAF50, #8BC34A); box-shadow: 0 0 40px rgba(76, 175, 80, 0.5); }
-        .lock-button .inner { width: 130px; height: 130px; border-radius: 50%; background: #1A1A2E; display: flex; align-items: center; justify-content: center; }
-        
-        .status-text { font-size: 1.4rem; font-weight: bold; margin-bottom: 5px; }
-        .status-text.locked { color: #6C63FF; }
-        .status-text.unlocked { color: #4CAF50; }
-        .last-access { color: #666; font-size: 0.8rem; }
-        
-        .cards-row { display: flex; gap: 12px; margin: 20px 0; width: 100%; justify-content: center; }
-        .mini-card { background: #1A1A2E; border-radius: 15px; padding: 12px 15px; text-align: center; flex: 1; max-width: 100px; }
-        
-        /* Password Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-overlay.show { display: flex; }
-        
-        .modal-box { background: linear-gradient(145deg, #1A1A2E, #16213E); border-radius: 24px; padding: 30px; width: 90%; max-width: 320px; text-align: center; border: 1px solid #333; }
-        .modal-box h2 { margin-bottom: 20px; color: #6C63FF; font-size: 1.3rem; }
-        
-        .password-input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border-radius: 12px; border: 2px solid #6C63FF; background: #0F0F1A; color: white; letter-spacing: 8px; margin-bottom: 10px; }
-        .password-input:focus { outline: none; border-color: #00D9FF; box-shadow: 0 0 20px rgba(108, 99, 255, 0.3); }
-        
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; font-size: 1rem; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        .modal-btn.confirm { background: linear-gradient(135deg, #6C63FF, #00D9FF); color: white; }
-        .modal-btn.cancel { background: #333; color: #aaa; }
-        .modal-btn:active { transform: scale(0.95); }
-        
-        .error-msg { color: #FF5252; font-size: 0.85rem; margin-top: 5px; display: none; }
-        .error-msg.show { display: block; animation: shake 0.5s; }
-        
+        /* ==================== CSS Reset & Base ==================== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --success-light: #34d399;
+            --danger: #ef4444;
+            --danger-light: #f87171;
+            --warning: #f59e0b;
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(15, 15, 25, 0.8);
+            --bg-glass: rgba(255, 255, 255, 0.03);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow-glow: 0 0 60px rgba(99, 102, 241, 0.3);
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(34, 211, 238, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-2%, 2%) rotate(2deg); }
+            50% { transform: translate(2%, -2%) rotate(-1deg); }
+            75% { transform: translate(-1%, -1%) rotate(1deg); }
+        }
+
+        /* Grid Pattern */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+        }
+
+        /* ==================== Password Screen ==================== */
+        .password-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 20px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .password-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .password-container {
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .password-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .password-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .password-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .password-input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 16px 50px 16px 20px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-family: inherit;
+            text-align: center;
+            letter-spacing: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .password-input.error {
+            border-color: var(--danger);
+            animation: shake 0.5s ease;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
         }
-        
-        .bottom-section { padding: 15px 20px; }
-        .log-container { background: #1A1A2E; border-radius: 15px; padding: 12px; max-height: 120px; overflow-y: auto; }
-        
-        .alarm-btn { position: fixed; bottom: 30px; right: 20px; background: linear-gradient(135deg, #FF5252, #FF1744); border: none; padding: 14px 20px; border-radius: 25px; color: white; box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4); font-weight: bold; }
-        
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); padding: 14px 24px; border-radius: 12px; z-index: 1001; transition: 0.3s; font-weight: bold; }
-        .toast.show { transform: translateX(-50%) translateY(20px); }
-        
-        .loading { position: fixed; inset: 0; background: #0F0F1A; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; transition: 0.5s; }
-        .loading.hidden { opacity: 0; pointer-events: none; }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(108, 99, 255, 0.3); border-top-color: #6C63FF; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .password-toggle {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .password-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .password-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .password-btn:active {
+            transform: translateY(0);
+        }
+
+        .password-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 15px;
+            min-height: 20px;
+        }
+
+        /* ==================== Main App ==================== */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .app-container.visible {
+            opacity: 1;
+        }
+
+        /* Header */
+        .header {
+            padding: 15px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 span {
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .status-badge.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-badge.disconnected {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            overflow-y: auto;
+            gap: 20px;
+        }
+
+        /* Lock Control */
+        .lock-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .lock-button-wrapper {
+            position: relative;
+        }
+
+        .lock-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
+            filter: blur(30px);
+            animation: glowPulse 2.5s ease-in-out infinite;
+            z-index: -1;
+            transition: background 0.5s ease;
+        }
+
+        .lock-glow.unlocked {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, transparent 70%);
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+        }
+
+        .lock-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: linear-gradient(var(--bg-dark), var(--bg-dark)) padding-box,
+                        linear-gradient(135deg, var(--primary), var(--accent)) border-box;
+            cursor: pointer;
+            font-size: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lock-button::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1));
+            transition: background 0.4s ease;
+        }
+
+        .lock-button.unlocked {
+            background: linear-gradient(var(--bg-dark), var(--bg-dark)) padding-box,
+                        linear-gradient(135deg, var(--success), var(--success-light)) border-box;
+        }
+
+        .lock-button.unlocked::before {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+        }
+
+        .lock-button:active {
+            transform: scale(0.92);
+        }
+
+        .lock-button .icon {
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .lock-button:active .icon {
+            transform: scale(0.9);
+        }
+
+        .status-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .status-text.locked { color: var(--primary-light); }
+        .status-text.unlocked { color: var(--success); }
+
+        .last-access {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 340px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:active {
+            transform: scale(0.96);
+        }
+
+        .stat-icon {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            flex-shrink: 0;
+            padding: 15px 20px;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 70px);
+        }
+
+        /* Log Container */
+        .log-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .log-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .log-clear {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .log-clear:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .log-list {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s ease;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-item:hover {
+            background: var(--bg-glass);
+        }
+
+        .log-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .log-icon.open {
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .log-icon.close {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .log-icon.alarm {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .log-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .log-action {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .log-source {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .log-source.app {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary-light);
+        }
+
+        .log-source.rfid {
+            background: rgba(34, 211, 238, 0.15);
+            color: var(--accent);
+        }
+
+        .log-source.auto {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .log-source.unauthorized {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger-light);
+        }
+
+        .empty-log {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 30px;
+            font-size: 0.85rem;
+        }
+
+        /* Alarm FAB */
+        .alarm-fab {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom) + 20px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--danger), var(--danger-light));
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .alarm-fab:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: calc(env(safe-area-inset-top) + 15px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, var(--success), var(--success-light));
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, var(--danger), var(--danger-light));
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2500;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-icon {
+            font-size: 3rem;
+            animation: bounce 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-muted);
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 2px;
+        }
+
+        /* iOS Fixes */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="loading" id="loading"><div class="spinner"></div></div>
+    <!-- Background Effects -->
+    <div class="bg-animation"></div>
+    <div class="bg-grid"></div>
 
-    <div class="header">
-        <h1>🔐 الخزنة الذكية</h1>
-        <div class="status-badge disconnected" id="statusBadge">غير متصل</div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-icon">🔐</div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">جاري الاتصال...</div>
     </div>
 
-    <div class="main-content">
-        <button class="lock-button locked" id="lockBtn" onclick="askPassword()">
-            <div class="inner"><span id="lockIcon">🔒</span></div>
-        </button>
-        <div class="status-text locked" id="statusText">الخزنة مقفلة</div>
-        <div class="last-access" id="lastAccess">-</div>
-
-        <div class="cards-row">
-            <div class="mini-card"><div class="icon">📡</div><div class="title">الاتصال</div><div class="value" id="connValue">-</div></div>
-            <div class="mini-card"><div class="icon">🎫</div><div class="title">الفتح</div><div class="value" id="accessType" style="color:#00D9FF">-</div></div>
-            <div class="mini-card"><div class="icon">⏰</div><div class="title">المدة</div><div class="value" style="color:#6C63FF">5 ث</div></div>
-        </div>
-    </div>
-
-    <div class="bottom-section">
-        <div class="log-container"><div id="logList" style="font-size: 0.75rem;"></div></div>
-    </div>
-
-    <button class="alarm-btn" onclick="triggerAlarm()">🚨 إنذار</button>
-    
-    <!-- Password Modal -->
-    <div class="modal-overlay" id="passwordModal">
-        <div class="modal-box">
-            <h2>🔐 أدخل كلمة المرور</h2>
-            <input type="password" class="password-input" id="passwordInput" maxlength="6" placeholder="······" onkeypress="handleEnter(event)">
-            <div class="error-msg" id="errorMsg">كلمة المرور غير صحيحة!</div>
-            <div class="modal-buttons">
-                <button class="modal-btn cancel" onclick="closeModal()">إلغاء</button>
-                <button class="modal-btn confirm" onclick="verifyPassword()">تأكيد</button>
+    <!-- Password Screen -->
+    <div class="password-screen" id="passwordScreen">
+        <div class="password-container">
+            <div class="password-icon">🔐</div>
+            <h2 class="password-title">الخزنة الذكية</h2>
+            <p class="password-subtitle">أدخل كلمة المرور للوصول</p>
+            <div class="password-input-container">
+                <input type="password" class="password-input" id="passwordInput" placeholder="••••••" maxlength="10">
+                <button class="password-toggle" onclick="togglePassword()">👁️</button>
             </div>
+            <button class="password-btn" onclick="checkPassword()">دخول</button>
+            <div class="password-error" id="passwordError"></div>
         </div>
     </div>
-    
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>
+                    <span>🔐</span>
+                    <span>الخزنة الذكية</span>
+                </h1>
+                <div class="status-badge disconnected" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span>غير متصل</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Lock Control -->
+            <div class="lock-control">
+                <div class="lock-button-wrapper">
+                    <div class="lock-glow" id="lockGlow"></div>
+                    <button class="lock-button" id="lockButton" onclick="toggleSafe()">
+                        <span class="icon" id="lockIcon">🔒</span>
+                    </button>
+                </div>
+                <div class="status-text locked" id="statusText">الخزنة مقفلة</div>
+                <div class="last-access" id="lastAccess">
+                    <span>🕐</span>
+                    <span>آخر نشاط: -</span>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">📡</div>
+                    <div class="stat-label">الاتصال</div>
+                    <div class="stat-value" id="connValue" style="color: var(--danger)">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎫</div>
+                    <div class="stat-label">طريقة الفتح</div>
+                    <div class="stat-value" id="accessType" style="color: var(--accent)">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-label">إغلاق تلقائي</div>
+                    <div class="stat-value" style="color: var(--primary-light)">5 ث</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Section -->
+        <section class="bottom-section">
+            <div class="log-container">
+                <div class="log-header">
+                    <div class="log-title">
+                        <span>📋</span>
+                        <span>سجل العمليات</span>
+                    </div>
+                    <button class="log-clear" onclick="clearLog()">مسح السجل</button>
+                </div>
+                <div class="log-list" id="logList">
+                    <div class="empty-log">لا توجد عمليات سابقة</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Alarm FAB -->
+        <button class="alarm-fab" onclick="triggerAlarm()">
+            <span>🚨</span>
+            <span>إنذار طوارئ</span>
+        </button>
+    </div>
+
+    <!-- Toast -->
     <div class="toast" id="toast"></div>
 
     <script>
+        // ==================== Firebase Config ====================
         const firebaseConfig = {
             apiKey: "AIzaSyDI-eFQnkntPMgRbe07ymzuVebmnsRe0SE",
             authDomain: "sssss-8d760.firebaseapp.com",
@@ -132,134 +859,352 @@
             appId: "1:601253161068:web:b8fda4072eaa824acf1049"
         };
 
+        // ==================== Global Variables ====================
+        let db = null;
+        let connected = false;
+        let safeOpen = false;
         const DEFAULT_PASSWORD = "123456";
-        
-        let db, connected = false, safeOpen = false;
 
+        // ==================== Password Functions ====================
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const btn = document.querySelector('.password-toggle');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        async function checkPassword() {
+            const input = document.getElementById('passwordInput');
+            const error = document.getElementById('passwordError');
+            const password = input.value;
+
+            // Get password from Firebase or use default
+            let correctPassword = DEFAULT_PASSWORD;
+            
+            if (db) {
+                try {
+                    const snapshot = await db.ref('app_password').once('value');
+                    if (snapshot.exists()) {
+                        correctPassword = snapshot.val();
+                    }
+                } catch (e) {
+                    console.log('Using default password');
+                }
+            }
+
+            if (password === correctPassword) {
+                document.getElementById('passwordScreen').classList.add('hidden');
+                document.getElementById('appContainer').classList.add('visible');
+                sessionStorage.setItem('authenticated', 'true');
+            } else {
+                input.classList.add('error');
+                error.textContent = '❌ كلمة المرور غير صحيحة';
+                setTimeout(() => {
+                    input.classList.remove('error');
+                }, 500);
+            }
+        }
+
+        // Enter key support
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        // ==================== Initialize App ====================
         function init() {
+            // Check if already authenticated
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                document.getElementById('passwordScreen').classList.add('hidden');
+                document.getElementById('appContainer').classList.add('visible');
+            }
+
+            // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
 
-            db.ref('.info/connected').on('value', s => {
-                connected = s.val();
-                document.getElementById('statusBadge').className = 'status-badge ' + (connected ? 'connected' : 'disconnected');
-                document.getElementById('statusBadge').textContent = connected ? 'متصل' : 'غير متصل';
-                document.getElementById('connValue').textContent = connected ? 'متصل' : 'غير متصل';
-                document.getElementById('connValue').style.color = connected ? '#4CAF50' : '#FF5252';
+            // Connection Status
+            db.ref('.info/connected').on('value', snapshot => {
+                connected = snapshot.val();
+                updateConnectionStatus();
             });
 
-            db.ref('safe_status').on('value', s => {
-                safeOpen = s.val() === true;
+            // Safe Status Listener
+            db.ref('safe_status').on('value', snapshot => {
+                safeOpen = snapshot.val() === true;
                 updateUI();
             });
 
-            db.ref('last_access').on('value', s => {
-                if (s.val()) document.getElementById('lastAccess').textContent = s.val();
-            });
-
-            db.ref('access_type').on('value', s => {
-                const t = s.val();
-                document.getElementById('accessType').textContent = t === 'APP' ? 'تطبيق' : t === 'RFID' ? 'بطاقة' : '-';
-            });
-
-            db.ref('operation_log').on('value', s => {
-                const d = s.val();
-                if (d) {
-                    const logs = Object.values(d).reverse().slice(0, 3);
-                    let h = '';
-                    logs.forEach(l => {
-                        h += `<div style="padding:5px; border-bottom:1px solid #333">${l.action === 'OPENED' ? '🔓 فتح' : '🔒 إغلاق'} - ${l.timestamp} [${l.source}]</div>`;
-                    });
-                    document.getElementById('logList').innerHTML = h;
+            // Last Access Listener
+            db.ref('last_access').on('value', snapshot => {
+                const val = snapshot.val();
+                if (val) {
+                    document.getElementById('lastAccess').innerHTML = 
+                        `<span>🕐</span><span>آخر نشاط: ${val}</span>`;
                 }
             });
 
-            setTimeout(() => document.getElementById('loading').classList.add('hidden'), 800);
+            // Access Type Listener
+            db.ref('access_type').on('value', snapshot => {
+                const type = snapshot.val();
+                let displayType = '-';
+                if (type === 'APP') displayType = 'تطبيق';
+                else if (type === 'RFID') displayType = 'بطاقة';
+                else if (type === 'AUTO') displayType = 'تلقائي';
+                document.getElementById('accessType').textContent = displayType;
+            });
+
+            // Alarm Listener
+            db.ref('alarm').on('value', snapshot => {
+                if (snapshot.val() === true) {
+                    showToast('🚨 تم تفعيل الإنذار!', 'error');
+                    playAlarmSound();
+                    addLogEntry('إنذار', 'ALARM', 'نظام الأمان');
+                }
+            });
+
+            // Operation Log Listener
+            db.ref('operation_log').orderByKey().limitToLast(20).on('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    updateLog(Object.entries(data).reverse());
+                } else {
+                    document.getElementById('logList').innerHTML = 
+                        '<div class="empty-log">لا توجد عمليات سابقة</div>';
+                }
+            });
+
+            // Hide loading
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }, 800);
+        }
+
+        // ==================== UI Updates ====================
+        function updateConnectionStatus() {
+            const badge = document.getElementById('statusBadge');
+            const connValue = document.getElementById('connValue');
+
+            if (connected) {
+                badge.className = 'status-badge connected';
+                badge.innerHTML = '<span class="status-dot"></span><span>متصل</span>';
+                connValue.textContent = 'متصل';
+                connValue.style.color = 'var(--success)';
+            } else {
+                badge.className = 'status-badge disconnected';
+                badge.innerHTML = '<span class="status-dot"></span><span>غير متصل</span>';
+                connValue.textContent = 'غير متصل';
+                connValue.style.color = 'var(--danger)';
+            }
         }
 
         function updateUI() {
-            const btn = document.getElementById('lockBtn');
+            const btn = document.getElementById('lockButton');
             const icon = document.getElementById('lockIcon');
-            const txt = document.getElementById('statusText');
-            btn.className = safeOpen ? 'lock-button unlocked' : 'lock-button locked';
-            icon.textContent = safeOpen ? '🔓' : '🔒';
-            txt.className = safeOpen ? 'status-text unlocked' : 'status-text locked';
-            txt.textContent = safeOpen ? 'الخزنة مفتوحة' : 'الخزنة مقفلة';
-        }
+            const text = document.getElementById('statusText');
+            const glow = document.getElementById('lockGlow');
 
-        function askPassword() {
-            if (!connected) {
-                showToast('❌ غير متصل بالإنترنت!', '#FF5252');
-                return;
-            }
             if (safeOpen) {
-                closeSafe();
+                btn.classList.add('unlocked');
+                icon.textContent = '🔓';
+                text.className = 'status-text unlocked';
+                text.textContent = 'الخزنة مفتوحة';
+                glow.classList.add('unlocked');
+            } else {
+                btn.classList.remove('unlocked');
+                icon.textContent = '🔒';
+                text.className = 'status-text locked';
+                text.textContent = 'الخزنة مقفلة';
+                glow.classList.remove('unlocked');
+            }
+        }
+
+        function updateLog(entries) {
+            const list = document.getElementById('logList');
+
+            if (!entries || entries.length === 0) {
+                list.innerHTML = '<div class="empty-log">لا توجد عمليات سابقة</div>';
                 return;
             }
-            document.getElementById('passwordModal').classList.add('show');
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('errorMsg').classList.remove('show');
-            setTimeout(() => document.getElementById('passwordInput').focus(), 100);
-        }
 
-        function closeModal() {
-            document.getElementById('passwordModal').classList.remove('show');
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') verifyPassword();
-        }
-
-        function verifyPassword() {
-            const input = document.getElementById('passwordInput').value;
-            
-            db.ref('app_password').once('value').then(snapshot => {
-                const correctPassword = snapshot.val() || DEFAULT_PASSWORD;
+            let html = '';
+            entries.slice(0, 10).forEach(([key, log]) => {
+                const isOpen = log.action === 'OPENED';
+                const isAlarm = log.action === 'ALARM';
                 
-                if (input === correctPassword) {
-                    closeModal();
-                    openSafe();
-                } else {
-                    document.getElementById('errorMsg').classList.add('show');
-                    document.getElementById('passwordInput').value = '';
-                    document.getElementById('passwordInput').focus();
+                let iconClass = isOpen ? 'open' : 'close';
+                let icon = isOpen ? '🔓' : '🔒';
+                let action = isOpen ? 'فتح الخزنة' : 'إغلاق الخزنة';
+                
+                if (isAlarm) {
+                    iconClass = 'alarm';
+                    icon = '🚨';
+                    action = 'إنذار الأمان';
                 }
+
+                let sourceClass = 'app';
+                let sourceText = 'تطبيق';
+                if (log.source === 'RFID') {
+                    sourceClass = 'rfid';
+                    sourceText = 'بطاقة';
+                } else if (log.source === 'AUTO') {
+                    sourceClass = 'auto';
+                    sourceText = 'تلقائي';
+                } else if (log.source === 'UNAUTHORIZED') {
+                    sourceClass = 'unauthorized';
+                    sourceText = 'غير مصرح';
+                }
+
+                html += `
+                    <div class="log-item">
+                        <div class="log-icon ${iconClass}">${icon}</div>
+                        <div class="log-info">
+                            <div class="log-action">${action}</div>
+                            <div class="log-time">${log.timestamp || '-'}</div>
+                        </div>
+                        <span class="log-source ${sourceClass}">${sourceText}</span>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        // ==================== Actions ====================
+        async function toggleSafe() {
+            if (!connected) {
+                showToast('⚠️ غير متصل بالإنترنت', 'error');
+                return;
+            }
+
+            const newStatus = !safeOpen;
+
+            try {
+                const timestamp = formatTimestamp(new Date());
+
+                await db.ref('safe_status').set(newStatus);
+                await db.ref('access_type').set('APP');
+                await db.ref('last_access').set(timestamp);
+
+                await db.ref('operation_log').push({
+                    timestamp: timestamp,
+                    source: 'APP',
+                    action: newStatus ? 'OPENED' : 'LOCKED'
+                });
+
+                showToast(newStatus ? '✅ تم فتح الخزنة' : '🔒 تم إغلاق الخزنة', 'success');
+                playClickSound();
+
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('❌ حدث خطأ', 'error');
+            }
+        }
+
+        async function triggerAlarm() {
+            if (!connected) {
+                showToast('⚠️ غير متصل بالإنترنت', 'error');
+                return;
+            }
+
+            try {
+                await db.ref('alarm').set(true);
+                showToast('🚨 تم تشغيل الإنذار!', 'error');
+                playAlarmSound();
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('❌ حدث خطأ', 'error');
+            }
+        }
+
+        async function clearLog() {
+            if (!connected) {
+                showToast('⚠️ غير متصل بالإنترنت', 'error');
+                return;
+            }
+
+            try {
+                await db.ref('operation_log').remove();
+                showToast('✅ تم مسح السجل', 'info');
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('❌ حدث خطأ', 'error');
+            }
+        }
+
+        function addLogEntry(action, actionType, source) {
+            const timestamp = formatTimestamp(new Date());
+            db.ref('operation_log').push({
+                timestamp: timestamp,
+                source: source,
+                action: actionType
             });
         }
 
-        async function openSafe() {
-            const now = new Date();
-            const ts = now.toLocaleTimeString();
-            await db.ref('safe_status').set(true);
-            await db.ref('access_type').set('APP');
-            await db.ref('last_access').set(ts);
-            await db.ref('operation_log').push({ timestamp: ts, source: 'APP', action: 'OPENED' });
-            showToast('🔓 تم فتح الخزنة!', '#4CAF50');
+        // ==================== Helpers ====================
+        function formatTimestamp(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         }
 
-        async function closeSafe() {
-            const now = new Date();
-            const ts = now.toLocaleTimeString();
-            await db.ref('safe_status').set(false);
-            await db.ref('operation_log').push({ timestamp: ts, source: 'APP', action: 'LOCKED' });
-            showToast('🔒 تم إغلاق الخزنة!', '#6C63FF');
-        }
-
-        function triggerAlarm() { 
-            db.ref('alarm').set(true); 
-            showToast('🚨 تم تفعيل الإنذار!', '#FF5252');
-            setTimeout(() => db.ref('alarm').set(false), 2000); 
-        }
-
-        function showToast(msg, color) {
+        function showToast(message, type) {
             const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.style.background = color;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2500);
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
-        
+
+        // ==================== Sounds ====================
+        function playClickSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 800;
+                gain.gain.value = 0.1;
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        function playAlarmSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                for (let i = 0; i < 6; i++) {
+                    setTimeout(() => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.value = 800 + (i % 2) * 500;
+                        gain.gain.value = 0.15;
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.15);
+                    }, i * 200);
+                }
+            } catch (e) {}
+        }
+
+        // ==================== Initialize ====================
         window.onload = init;
+
+        // Prevent pull-to-refresh
+        document.body.addEventListener('touchmove', (e) => {
+            if (!e.target.closest('.log-list')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
