@@ -1022,7 +1022,22 @@
         }
         addCardBtn.onclick = () => { newUid.value = ''; cardModal.classList.add('show'); };
         cardCancel.onclick = () => cardModal.classList.remove('show');
-        cardOk.onclick = async () => { const u = newUid.value.toUpperCase().trim(); if (!u || u.length < 4) { toastMsg('❌ UID غير صالح', 'err'); return; } await db.ref('authorized_cards/card_' + Date.now()).set(u); cardModal.classList.remove('show'); toastMsg('✅ تمت الإضافة', 'ok'); };
+        cardOk.onclick = async () => { 
+            const u = newUid.value.toUpperCase().trim(); 
+            if (!u || u.length < 4) { toastMsg('❌ UID غير صالح', 'err'); return; }
+            
+            // Find next card number
+            const keys = Object.keys(cards);
+            let nextNum = 1;
+            keys.forEach(k => {
+                const n = parseInt(k.replace('card', ''));
+                if (n >= nextNum) nextNum = n + 1;
+            });
+            
+            await db.ref('authorized_cards/card' + nextNum).set(u); 
+            cardModal.classList.remove('show'); 
+            toastMsg('✅ تمت الإضافة', 'ok'); 
+        };
 
         // Log
         function renderLog() {
