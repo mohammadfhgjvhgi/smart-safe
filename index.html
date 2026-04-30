@@ -1086,18 +1086,25 @@
             try {
                 const timestamp = formatTimestamp(new Date());
 
+                // تحديث الحالة
                 await db.ref('safe_status').set(newStatus);
                 await db.ref('access_type').set('APP');
                 await db.ref('last_access').set(timestamp);
 
+                // إضافة للسجل
                 await db.ref('operation_log').push({
                     timestamp: timestamp,
                     source: 'APP',
                     action: newStatus ? 'OPENED' : 'LOCKED'
                 });
 
-                showToast(newStatus ? '✅ تم فتح الخزنة' : '🔒 تم إغلاق الخزنة', 'success');
-                playClickSound();
+                // إذا فتح، أضف إغلاق تلقائي بعد 5 ثواني
+                if (newStatus) {
+                    showToast('✅ تم فتح الخزنة', 'success');
+                    playClickSound();
+                } else {
+                    showToast('🔒 تم إغلاق الخزنة', 'info');
+                }
 
             } catch (error) {
                 console.error('Error:', error);
